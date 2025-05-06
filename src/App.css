@@ -118,6 +118,14 @@
   background-color: #ccc;
   border: 1px solid #000;
   border-radius: 5px;
+  text-align: center;
+  line-height: 30px;
+  cursor: pointer;
+}
+
+.tile:hover {
+  border-color: #005b99;
+  background-color: #e0e0e0;
 }
 
 .floor-line {

@@ -67,17 +67,25 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
   const [selectedTiles, setSelectedTiles] = useState<{ tiles: Color[]; color: string } | null>(null);
 
-  const handleSelectTile = (color: string, factoryId: number) => {
-    const { selected, leftover } = game.selectTiles(factoryId, color); // Get selected and leftover tiles
-    setSelectedTiles({ tiles: selected, color });
+  const handleSelectTile = (color: string, factoryId?: number) => {
+    if (factoryId !== undefined) {
+      // Handle selection from a factory
+      const { selected, leftover } = game.selectTiles(factoryId, color);
+      setSelectedTiles({ tiles: selected, color });
 
-    // Move leftover tiles to the center pool
-    game.center = [...game.center, ...leftover];
+      // Move leftover tiles to the center pool
+      game.center = [...game.center, ...leftover];
 
-    // Remove tiles from the factory
-    game.factories = game.factories.map((factory) =>
-      factory.id === factoryId ? { ...factory, tiles: [] } : factory
-    );
+      // Remove tiles from the factory
+      game.factories = game.factories.map((factory) =>
+        factory.id === factoryId ? { ...factory, tiles: [] } : factory
+      );
+    } else {
+      // Handle selection from the center pool
+      const selected = game.center.filter((tile) => tile === color);
+      game.center = game.center.filter((tile) => tile !== color);
+      setSelectedTiles({ tiles: selected, color });
+    }
 
     setVersion((v) => v + 1); // Trigger re-render
   };
@@ -107,9 +115,14 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <CenterPool>
         <h3>Center Pool:</h3>
         {game.center.map((tile, idx) => (
-          <div key={idx} className="tile" style={{ backgroundColor: tile }}>
+          <button
+            key={idx}
+            className="tile"
+            style={{ backgroundColor: tile }}
+            onClick={() => handleSelectTile(tile)}
+          >
             {tile}
-          </div>
+          </button>
         ))}
       </CenterPool>
 

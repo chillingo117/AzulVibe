@@ -50,7 +50,7 @@ export const SelectedTilesComponent: React.FC<SelectedTilesProps> = ({ tiles, co
         <>
           <TilesRow>
             {tiles.map((tile, idx) => (
-              <Tile key={idx} color={color} />
+              <Tile key={idx} tile={tile} /> // Pass the entire TileType object
             ))}
           </TilesRow>
           <ClearButton onClick={onClearSelection}>Clear Selection</ClearButton>

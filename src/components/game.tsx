@@ -115,6 +115,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
         factory.tiles.push(...tiles);
         const toSendBackToFactory = game.center.filter((tile) => tile.selected);
         game.center = game.center.filter((tile) => !tile.selected);
+
+        toSendBackToFactory.forEach((tile) => (tile.selected = false)); // Reset selected state
         factory.tiles.push(...toSendBackToFactory);
       }
     } else {
@@ -143,7 +145,11 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <CenterPool>
         <h3>Center Pool:</h3>
         {game.center.map((tile, idx) => (
-          <Tile key={idx} color={tile.color} onClick={() => handleSelectTile(tile.color)} />
+          <Tile
+            key={idx}
+            tile={tile}
+            onClick={() => handleSelectTile(tile.color)} // Handle tile selection
+          />
         ))}
       </CenterPool>
 

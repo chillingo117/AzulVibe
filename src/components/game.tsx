@@ -4,6 +4,7 @@ import { FactoryComponent } from './factory';
 import { PlayerBoardComponent } from './playerBoard';
 import styled from 'styled-components';
 import { Color } from '../game/types';
+import { Tile } from './tile';
 
 interface GameProps {
   playerNames: string[];
@@ -115,14 +116,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <CenterPool>
         <h3>Center Pool:</h3>
         {game.center.map((tile, idx) => (
-          <button
-            key={idx}
-            className="tile"
-            style={{ backgroundColor: tile }}
-            onClick={() => handleSelectTile(tile)}
-          >
-            {tile}
-          </button>
+          <Tile key={idx} color={tile} onClick={() => handleSelectTile(tile)} />
         ))}
       </CenterPool>
 

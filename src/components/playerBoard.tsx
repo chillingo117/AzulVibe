@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Player } from '../game/types';
+import { Tile } from './tile';
 
 interface Props {
   player: Player;
@@ -22,16 +23,6 @@ const PatternLine = styled.div`
   margin-bottom: 10px;
 `;
 
-const Tile = styled.span<{ color: string }>`
-  display: inline-block;
-  width: 30px;
-  height: 30px;
-  margin: 2px;
-  background-color: ${(props) => props.color || '#ccc'};
-  border: 1px solid #000;
-  border-radius: 5px;
-`;
-
 const FloorLine = styled.div`
   margin-top: 10px;
   font-weight: bold;
@@ -47,7 +38,7 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
           <PatternLine key={row}>
             <span>Row {row + 1}: </span>
             {line.map((tile, col) => (
-              <Tile key={col} color={tile || 'transparent'}>{tile || '-'}</Tile>
+              <Tile key={col} color={tile || 'transparent'} />
             ))}
             {isCurrent && (
               <button onClick={() => onPlaceTiles(row)}>Place Here</button>
@@ -58,8 +49,8 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
 
       <FloorLine>
         <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
-          <Tile key={idx} color={tile}>{tile}</Tile>
-        )) || '—'}
+          <Tile key={idx} color={tile} />
+        ))}
       </FloorLine>
     </PlayerBoardContainer>
   );

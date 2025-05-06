@@ -89,31 +89,40 @@ export class GameManager {
   placeTiles(playerId: number, row: number, tiles: Tile[]): void {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
-  
+    const wallRow = player.board.wall[row];
+
+    // Rule: Prevent placing tiles if the color is already completed in the mosaic row
+    const tileColor = tiles[0].color;
+    if (wallRow.some((tile) => tile?.color === tileColor)) {
+      alert(`You cannot place tiles of color ${tileColor} in this row. The color is already completed in the mosaic.`);
+      return;
+    }
+
     // Rule: All tiles in a line must match the same color
-    if(line.some((t) => t !== null && t.color !== tiles[0].color)) {
+    if (line.some((t) => t !== null && t.color !== tileColor)) {
       alert("Color must match existing line colors!");
       return;
     }
 
     // Rule: Line must not be full
-    if(line.every((t) => t !== null)) {
+    if (line.every((t) => t !== null)) {
       alert("Row is already full!");
       return;
     }
 
-    if (line.includes(null) || line.every((t) => t === tiles[0] || t === null)) {
-      for (let i = 0; i < line.length && tiles.length > 0; i++) {
-        if (line[i] === null) {
-          line[i] = tiles.shift()!;
-        }
+    // Place tiles in the pattern line
+    for (let i = 0; i < line.length && tiles.length > 0; i++) {
+      if (line[i] === null) {
+        line[i] = tiles.shift()!;
       }
     }
-  
-    // Leftovers go to floor line
+
+    // Leftovers go to the floor line
     player.board.floorLine.push(...tiles);
-    this.center = this.center.map((t) => {return {...t, selected: false}}); // Reset selected state
-  }  
+
+    // Reset selected state for tiles in the center
+    this.center = this.center.map((t) => ({ ...t, selected: false }));
+  }
 
   resetFloorLines() {
     this.players.forEach((player) => {

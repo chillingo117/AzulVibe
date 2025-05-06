@@ -1,0 +1,187 @@
+import { Factory, Player, PlayerBoard, Tile } from './types';
+
+/**
+ * GameManager managers the game state
+ */
+export class GameManager {
+  players: Player[];
+  factories: Factory[];
+  tileBag: Tile[];
+  center: Tile[];
+  currentPlayerIndex: number = 0;
+  round: number;
+
+  constructor(playerNames: string[]) {
+    this.round = 1; // Start at round 1
+    this.tileBag = this.generateTileBag();
+    this.center = [];
+    this.players = playerNames.map((name, i) => ({
+      id: i,
+      name,
+      score: 0,
+      board: this.initializeBoard(),
+    }));
+    this.factories = this.initializeFactories();
+    this.fillFactories();
+  }
+
+  getCurrentPlayer(): Player {
+    return this.players[this.currentPlayerIndex];
+  }
+  
+  nextTurn(): void {
+    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+  }  
+
+  generateTileBag(): Tile[] {
+    const colors: Tile[] = ['blue', 'yellow', 'red', 'black', 'white'];
+    let bag: Tile[] = [];
+    for (const color of colors) {
+      for (let i = 0; i < 20; i++) bag.push(color); // 100 total
+    }
+    return this.shuffle(bag);
+  }
+
+  shuffle<T>(array: T[]): T[] {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  initializeFactories(): Factory[] {
+    const numFactories = this.players.length === 2 ? 5 : 7;
+    return Array.from({ length: numFactories }, (_, i) => ({
+      id: i,
+      tiles: [],
+    }));
+  }
+
+  fillFactories(): void {
+    for (let factory of this.factories) {
+      factory.tiles = this.tileBag.splice(0, 4);
+    }
+    this.center = [];
+  }
+
+  initializeBoard(): PlayerBoard {
+    return {
+      wall: Array.from({ length: 5 }, () => Array(5).fill(null)),
+      patternLines: Array.from({ length: 5 }, (_, i) => Array(i + 1).fill(null)),
+      floorLine: [],
+    };
+  }
+
+  //Tile Management
+  selectTiles(factoryId: number, color: string): { selected: Tile[]; leftover: Tile[] } {
+    let selected: Tile[] = [];
+    let leftover: Tile[] = [];
+  
+    const tiles = factoryId === -1 ? this.center : this.factories[factoryId].tiles;
+  
+    for (const tile of tiles) {
+      if (tile === color) selected.push(tile);
+      else leftover.push(tile);
+    }
+  
+    // Clear source
+    if (factoryId === -1) {
+      this.center = [];
+    } else {
+      this.factories[factoryId].tiles = [];
+      this.center.push(...leftover);
+    }
+  
+    return { selected, leftover };
+  }
+
+  placeTiles(playerId: number, row: number, tiles: Tile[]): void {
+    const player = this.players[playerId];
+    const line = player.board.patternLines[row];
+  
+    // Rule: All tiles in a line must match and the line must not be full
+    if (line.includes(null) || line.every((t) => t === tiles[0] || t === null)) {
+      for (let i = 0; i < line.length && tiles.length > 0; i++) {
+        if (line[i] === null) {
+          line[i] = tiles.shift()!;
+        }
+      }
+    }
+  
+    // Leftovers go to floor line
+    player.board.floorLine.push(...tiles);
+  }  
+
+  resetFloorLines() {
+    this.players.forEach((player) => {
+      player.board.floorLine = [];
+    });
+  }
+  
+
+  shuffleTileBag() {
+    for (let i = this.tileBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.tileBag[i], this.tileBag[j]] = [this.tileBag[j], this.tileBag[i]];
+    }
+  }
+  
+  refillFactories() {
+    // Empty current factories and reset them with 4 tiles each
+    this.factories.forEach(factory => factory.tiles = []);
+    this.center = [];
+  
+    this.shuffleTileBag();
+    
+    this.factories.forEach((factory) => {
+      for (let i = 0; i < 4; i++) {
+        factory.tiles.push(this.tileBag.pop()!);
+      }
+    });
+  
+    // Fill the center with the leftover tiles
+    this.center.push(...this.tileBag.splice(0, 4));
+  }
+  
+  resetRound() {
+    this.resetFloorLines();
+    this.refillFactories();
+  }
+
+  calculateScore(player: Player) {
+    let score = 0;
+  
+    // Calculate row bonuses
+    player.board.patternLines.forEach((line, index) => {
+      const consecutiveCount = line.filter(tile => tile !== null).length;
+      if (consecutiveCount > 0) {
+        score += consecutiveCount;
+      }
+    });
+  
+    // Calculate vertical bonuses (column check)
+    for (let col = 0; col < 5; col++) {
+      let columnCount = 0;
+      for (let row = 0; row < 5; row++) {
+        if (player.board.patternLines[row][col] !== null) {
+          columnCount++;
+        }
+      }
+      if (columnCount > 0) score += columnCount;
+    }
+  
+    // Add other scoring rules (like completed lines, etc.)
+    return score;
+  }
+  
+  updateScores() {
+    this.players.forEach((player) => {
+      const score = this.calculateScore(player);
+      player.score += score;
+    });
+  }
+  
+  nextRound() {
+    this.currentPlayerIndex = 0; // Reset to first player
+    this.round++; // Increment round number
+    this.resetRound(); // Reset the board for the new round
+  }
+  
+}

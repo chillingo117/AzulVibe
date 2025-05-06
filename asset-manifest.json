@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/azul-vibe/static/css/main.122f1391.css",
-    "main.js": "/azul-vibe/static/js/main.fe88fbed.js",
-    "static/js/453.56afaa51.chunk.js": "/azul-vibe/static/js/453.56afaa51.chunk.js",
-    "index.html": "/azul-vibe/index.html",
-    "main.122f1391.css.map": "/azul-vibe/static/css/main.122f1391.css.map",
-    "main.fe88fbed.js.map": "/azul-vibe/static/js/main.fe88fbed.js.map",
-    "453.56afaa51.chunk.js.map": "/azul-vibe/static/js/453.56afaa51.chunk.js.map"
+    "main.css": "/AzulVibe/static/css/main.122f1391.css",
+    "main.js": "/AzulVibe/static/js/main.db077cf3.js",
+    "static/js/453.56afaa51.chunk.js": "/AzulVibe/static/js/453.56afaa51.chunk.js",
+    "index.html": "/AzulVibe/index.html",
+    "main.122f1391.css.map": "/AzulVibe/static/css/main.122f1391.css.map",
+    "main.db077cf3.js.map": "/AzulVibe/static/js/main.db077cf3.js.map",
+    "453.56afaa51.chunk.js.map": "/AzulVibe/static/js/453.56afaa51.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.122f1391.css",
-    "static/js/main.fe88fbed.js"
+    "static/js/main.db077cf3.js"
   ]
 }

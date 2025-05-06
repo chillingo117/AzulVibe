@@ -72,6 +72,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     factoryId?: number;
   } | null>(null);
 
+  const [version, setVersion] = useState(0); // Add a version state to trigger re-renders
+
   const handleSelectTile = (color: string, factoryId?: number) => {
     console.log('Selected tile color:', color);
     console.log('Selected factory ID:', factoryId);
@@ -99,8 +101,19 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   };
 
   const handleEndRound = () => {
-    game.updateScores(); // Update player scores
-    game.nextRound(); // Move to the next round
+    // Check if all tiles are taken
+    const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
+    const centerPoolEmpty = game.center.length === 0;
+
+    if (!allFactoriesEmpty || !centerPoolEmpty) {
+      alert("You cannot end the round until all tiles are taken!");
+      return;
+    }
+
+    // Update player scores and move to the next round
+    game.updateScores();
+    game.nextRound();
+    setVersion((v) => v + 1); // Trigger a re-render
   };
 
   const handleClearSelection = () => {
@@ -128,11 +141,19 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     setSelectedTiles(null); // Clear the selection
   };
 
+  const canEndRound = () => {
+    const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
+    const centerPoolEmpty = game.center.length === 0;
+    return allFactoriesEmpty && centerPoolEmpty;
+  };
+
   return (
     <GameContainer>
       <h1>Azul Game</h1>
       <div>Current Round: {game.round}</div>
-      <Button onClick={handleEndRound}>End Round</Button>
+
+      {/* Conditionally render the End Round button */}
+      {canEndRound() && <Button onClick={handleEndRound}>End Round</Button>}
 
       {/* Selected Tiles */}
       <SelectedTilesComponent

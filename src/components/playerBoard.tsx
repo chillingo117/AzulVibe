@@ -21,7 +21,11 @@ const PlayerBoardContainer = styled.div`
 `;
 
 const PatternLine = styled.div`
+  display: flex;
+  justify-content: flex-end; /* Align rows to the right */
+  align-items: center;
   margin-bottom: 10px;
+  gap: 5px;
 `;
 
 const FloorLine = styled.div`
@@ -29,34 +33,65 @@ const FloorLine = styled.div`
   font-weight: bold;
 `;
 
+const PlaceButton = styled.button`
+  background-color: #003366;
+  color: white;
+  font-size: 12px;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #005b99;
+  }
+`;
+
+const BoardContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px; /* Space between pattern rows and mosaic */
+`;
+
+const PatternLinesContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Align rows to the right */
+  gap: 10px;
+`;
+
 export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPlaceTiles }) => {
   return (
     <PlayerBoardContainer className={isCurrent ? 'current-player' : ''}>
       <h2>{player.name} (Score: {player.score})</h2>
 
-      <div className="pattern-lines">
-        {player.board.patternLines.map((line, row) => (
-          <PatternLine key={row}>
-            <span>Row {row + 1}: </span>
-            {line.map((tile, col) => (
-              <Tile key={col} tile={tile} />
+      <BoardContent>
+        {/* Pattern Rows */}
+        <PatternLinesContainer>
+          {player.board.patternLines.map((line, row) => (
+            <PatternLine key={row}>
+              {line.map((tile, col) => (
+                <Tile key={col} tile={tile} />
+              ))}
+              {isCurrent && (
+                <PlaceButton onClick={() => onPlaceTiles(row)}>Place</PlaceButton>
+              )}
+            </PatternLine>
+          ))}
+
+          {/* Floor Line */}
+          <FloorLine>
+            <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
+              <Tile key={idx} tile={tile} />
             ))}
-            {isCurrent && (
-              <button onClick={() => onPlaceTiles(row)}>Place Here</button>
-            )}
-          </PatternLine>
-        ))}
-      </div>
+          </FloorLine>
+        </PatternLinesContainer>
 
-      <FloorLine>
-        <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
-          <Tile key={idx} tile={tile} />
-        ))}
-      </FloorLine>
-
-      {/* Add the Mosaic Component */}
-      <h3>Mosaic</h3>
-      <MosaicComponent wall={player.board.wall} />
+        {/* Mosaic */}
+        <MosaicComponent wall={player.board.wall} />
+      </BoardContent>
     </PlayerBoardContainer>
   );
 };

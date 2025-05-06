@@ -32,7 +32,7 @@ const PlayerBoardsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  gap: 40px; /* Add spacing between player boards */
   margin-top: 20px;
 `;
 

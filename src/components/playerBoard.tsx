@@ -38,7 +38,7 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
           <PatternLine key={row}>
             <span>Row {row + 1}: </span>
             {line.map((tile, col) => (
-              <Tile key={col} color={tile || null} />
+              <Tile key={col} color={tile?.color || null} />
             ))}
             {isCurrent && (
               <button onClick={() => onPlaceTiles(row)}>Place Here</button>
@@ -49,7 +49,7 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
 
       <FloorLine>
         <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
-          <Tile key={idx} color={tile} />
+          <Tile key={idx} color={tile.color} />
         ))}
       </FloorLine>
     </PlayerBoardContainer>

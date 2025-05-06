@@ -1,4 +1,4 @@
-import { Factory, Player, PlayerBoard, Tile } from './types';
+import { AllColors, Factory, Player, PlayerBoard, Tile } from './types';
 
 /**
  * GameManager managers the game state
@@ -34,10 +34,10 @@ export class GameManager {
   }  
 
   generateTileBag(): Tile[] {
-    const colors: Tile[] = ['blue', 'yellow', 'red', 'black', 'white'];
+    const colors = AllColors;
     let bag: Tile[] = [];
     for (const color of colors) {
-      for (let i = 0; i < 20; i++) bag.push(color); // 100 total
+      for (let i = 0; i < 20; i++) bag.push({color, selected: false}); // 100 total
     }
     return this.shuffle(bag);
   }
@@ -70,12 +70,18 @@ export class GameManager {
   }
 
   //Tile Management
-  selectTiles(factoryId: number, color: string): { selected: Tile[]; leftover: Tile[] } {
+  selectTiles(color: string, factoryId?: number): { selected: Tile[]; leftover: Tile[] } {
+    if(factoryId === undefined) {
+      const selected = this.center.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
+      this.center = this.center.filter((tile) => tile.color !== color);
+      return { selected, leftover: [] };
+    }
+
     const factory = this.factories.find((f) => f.id === factoryId);
     if (!factory) throw new Error(`Factory with ID ${factoryId} not found`);
 
-    const selected = factory.tiles.filter((tile) => tile === color);
-    const leftover = factory.tiles.filter((tile) => tile !== color);
+    const selected = factory.tiles.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
+    const leftover = factory.tiles.filter((tile) => tile.color !== color).map((tile) => ({ ...tile, selected: true }));
 
     return { selected, leftover };
   }
@@ -84,7 +90,18 @@ export class GameManager {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
   
-    // Rule: All tiles in a line must match and the line must not be full
+    // Rule: All tiles in a line must match the same color
+    if(line.some((t) => t !== null && t.color !== tiles[0].color)) {
+      alert("Color must match existing line colors!");
+      return;
+    }
+
+    // Rule: Line must not be full
+    if(line.every((t) => t !== null)) {
+      alert("Row is already full!");
+      return;
+    }
+
     if (line.includes(null) || line.every((t) => t === tiles[0] || t === null)) {
       for (let i = 0; i < line.length && tiles.length > 0; i++) {
         if (line[i] === null) {
@@ -95,6 +112,7 @@ export class GameManager {
   
     // Leftovers go to floor line
     player.board.floorLine.push(...tiles);
+    this.center = this.center.map((t) => {return {...t, selected: false}}); // Reset selected state
   }  
 
   resetFloorLines() {

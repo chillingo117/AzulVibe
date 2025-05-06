@@ -23,14 +23,14 @@ const FactoryContainer = styled.div`
 `;
 
 export const FactoryComponent: React.FC<Props> = ({ factory, onSelectTile }) => {
-  const handleClick = (tile: string) => {
-    onSelectTile(tile, factory.id); // Pass the selected tile and factory ID
+  const handleClick = (tileColor: string) => {
+    onSelectTile(tileColor, factory.id); // Pass the selected tile and factory ID
   };
 
   return (
     <FactoryContainer>
       {factory.tiles.map((tile, idx) => (
-        <Tile key={idx} color={tile} onClick={() => handleClick(tile)} />
+        <Tile key={idx} color={tile.color} onClick={() => handleClick(tile.color)} />
       ))}
     </FactoryContainer>
   );

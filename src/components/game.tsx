@@ -88,7 +88,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     factoryId?: number;
   } | null>(null);
 
-  const [version, setVersion] = useState(0); // Add a version state to trigger re-renders
+  // eslint-disable-next-line
+  const [_, setVersion] = useState(0); // Add a version state to trigger re-renders
 
   const handleSelectTile = (color: string, factoryId?: number) => {
     if (selectedTiles) {

@@ -116,7 +116,6 @@ export class GameManager {
   placeTiles(playerId: number, row: number, tiles: Tile[]): void {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
-    const wallRow = player.board.wall[row];
 
     // Place tiles in the pattern line
     for (let i = 0; i < line.length && tiles.length > 0; i++) {

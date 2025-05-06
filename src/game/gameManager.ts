@@ -179,6 +179,10 @@ export class GameManager {
   
   updateScores() {
     this.players.forEach((player) => {
+      // Move tiles to the mosaic wall
+      this.moveTilesToMosaic(player);
+
+      // Calculate and update the player's score
       const score = this.calculateScore(player);
       player.score += score;
     });
@@ -188,6 +192,23 @@ export class GameManager {
     this.currentPlayerIndex = 0; // Reset to first player
     this.round++; // Increment round number
     this.resetRound(); // Reset the board for the new round
+  }
+
+  moveTilesToMosaic(player: Player) {
+    player.board.patternLines.forEach((line, rowIndex) => {
+      const isRowFull = line.every((tile) => tile !== null); // Check if the row is full
+
+      if (isRowFull) {
+        // Add the first tile in the row to the mosaic wall
+        const tileToAdd = line[0]; // All tiles in the row are the same color
+        if (tileToAdd) {
+          player.board.wall[rowIndex][rowIndex] = tileToAdd; // Add to the mosaic wall
+        }
+
+        // Clear the pattern line
+        player.board.patternLines[rowIndex] = Array(line.length).fill(null);
+      }
+    });
   }
   
 }

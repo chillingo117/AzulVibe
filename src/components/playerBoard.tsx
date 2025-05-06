@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Player } from '../game/types';
 import { Tile } from './tile';
+import { MosaicComponent } from './mosaic';
 
 interface Props {
   player: Player;
@@ -38,7 +39,7 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
           <PatternLine key={row}>
             <span>Row {row + 1}: </span>
             {line.map((tile, col) => (
-              <Tile key={col} tile={tile} /> // Pass the entire TileType object
+              <Tile key={col} tile={tile} />
             ))}
             {isCurrent && (
               <button onClick={() => onPlaceTiles(row)}>Place Here</button>
@@ -49,9 +50,13 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
 
       <FloorLine>
         <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
-          <Tile key={idx} tile={tile} /> // Pass the entire TileType object
+          <Tile key={idx} tile={tile} />
         ))}
       </FloorLine>
+
+      {/* Add the Mosaic Component */}
+      <h3>Mosaic</h3>
+      <MosaicComponent wall={player.board.wall} />
     </PlayerBoardContainer>
   );
 };

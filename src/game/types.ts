@@ -5,6 +5,14 @@ export type Color = 'blue' | 'yellow' | 'red' | 'black' | 'white';
 export const AllColors: Color[] = ['blue', 'yellow', 'red', 'black', 'white'];
 export type Tile = {color: Color, selected: boolean};
 
+export const DefaultMosaicColors: Color[][] = [
+  ['blue', 'yellow', 'red', 'black', 'white'],
+  ['white', 'blue', 'yellow', 'red', 'black'],
+  ['black', 'white', 'blue', 'yellow', 'red'],
+  ['red', 'black', 'white', 'blue', 'yellow'],
+  ['yellow', 'red', 'black', 'white', 'blue'],
+];
+
 export interface Factory {
   id: number;
   tiles: Tile[];

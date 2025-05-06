@@ -70,6 +70,14 @@ const CenterPool = styled.div`
   justify-content: center;
 `;
 
+const CenterAndSelectedContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px; /* Space between center pool and selected tiles */
+  margin: 20px 0;
+`;
+
 export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const gameManagerRef = useRef(new GameManager(playerNames));
   const game = gameManagerRef.current;
@@ -83,6 +91,10 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const [version, setVersion] = useState(0); // Add a version state to trigger re-renders
 
   const handleSelectTile = (color: string, factoryId?: number) => {
+    if (selectedTiles) {
+      // If tiles are already selected, clear the selection
+      handleClearSelection();
+    }
     const { selected, leftover } = game.selectTiles(color, factoryId);
     setSelectedTiles({ tiles: selected, color, factoryId });
 
@@ -100,10 +112,12 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
     const currentPlayer = game.getCurrentPlayer();
     const tilesToPlace = selectedTiles.tiles;
-
-    game.placeTiles(currentPlayer.id, row, tilesToPlace);
-    game.nextTurn();
-    setSelectedTiles(null);
+    
+    if(game.canPlaceTiles(currentPlayer.id, row, tilesToPlace)) {
+        game.placeTiles(currentPlayer.id, row, tilesToPlace);
+        game.nextTurn();
+        setSelectedTiles(null);
+    }
   };
 
   const handleEndRound = () => {
@@ -156,23 +170,26 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
       {canEndRound() && <Button onClick={handleEndRound}>End Round</Button>}
 
-      <SelectedTilesComponent
-        tiles={selectedTiles?.tiles || []}
-        color={selectedTiles?.color || null}
-        onClearSelection={handleClearSelection}
-      />
+      {/* Center Pool and Selected Tiles */}
+      <CenterAndSelectedContainer>
+        <SelectedTilesComponent
+            tiles={selectedTiles?.tiles || []}
+            color={selectedTiles?.color || null}
+            onClearSelection={handleClearSelection}
+        />
 
-      {/* Center Pool */}
-      <CenterPool>
-        <h3>Center Pool:</h3>
-        {game.center.map((tile, idx) => (
-          <Tile
-            key={idx}
-            tile={tile}
-            onClick={() => handleSelectTile(tile.color)} // Handle tile selection
-          />
-        ))}
-      </CenterPool>
+        {/* Center Pool */}
+        <CenterPool>
+            <h3>Center Pool:</h3>
+            {game.center.map((tile, idx) => (
+            <Tile
+                key={idx}
+                tile={tile}
+                onClick={() => handleSelectTile(tile.color)} // Handle tile selection
+            />
+            ))}
+        </CenterPool>
+      </CenterAndSelectedContainer>
 
       {/* Factories */}
       <FactoriesContainer>

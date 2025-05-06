@@ -1,4 +1,4 @@
-import { AllColors, Factory, Player, PlayerBoard, Tile } from './types';
+import { AllColors, Factory, Player, PlayerBoard, Tile, DefaultMosaicColors } from './types';
 
 /**
  * GameManager managers the game state
@@ -63,7 +63,7 @@ export class GameManager {
 
   initializeBoard(): PlayerBoard {
     return {
-      wall: Array.from({ length: 5 }, () => Array(5).fill(null)),
+      wall: DefaultMosaicColors.map((row) => row.map((color) => null)),
       patternLines: Array.from({ length: 5 }, (_, i) => Array(i + 1).fill(null)),
       floorLine: [],
     };
@@ -86,7 +86,7 @@ export class GameManager {
     return { selected, leftover };
   }
 
-  placeTiles(playerId: number, row: number, tiles: Tile[]): void {
+  canPlaceTiles(playerId: number, row: number, tiles: Tile[]): boolean {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
     const wallRow = player.board.wall[row];
@@ -94,21 +94,29 @@ export class GameManager {
     // Rule: Prevent placing tiles if the color is already completed in the mosaic row
     const tileColor = tiles[0].color;
     if (wallRow.some((tile) => tile?.color === tileColor)) {
-      alert(`You cannot place tiles of color ${tileColor} in this row. The color is already completed in the mosaic.`);
-      return;
+      alert(`You cannot place tiles of color ${tileColor} in this row as it is already completed in the mosaic wall.`);
+      return false;
     }
 
     // Rule: All tiles in a line must match the same color
     if (line.some((t) => t !== null && t.color !== tileColor)) {
-      alert("Color must match existing line colors!");
-      return;
+      alert(`You cannot place tiles of different colors in the same line.`);
+      return false;
     }
 
     // Rule: Line must not be full
     if (line.every((t) => t !== null)) {
-      alert("Row is already full!");
-      return;
+      alert(`You cannot place tiles in a full line.`);
+      return false;
     }
+
+    return true;
+  }
+
+  placeTiles(playerId: number, row: number, tiles: Tile[]): void {
+    const player = this.players[playerId];
+    const line = player.board.patternLines[row];
+    const wallRow = player.board.wall[row];
 
     // Place tiles in the pattern line
     for (let i = 0; i < line.length && tiles.length > 0; i++) {

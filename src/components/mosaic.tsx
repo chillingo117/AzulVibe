@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Tile } from './tile';
-import { Tile as TileType } from '../game/types';
+import { Tile as TileType, DefaultMosaicColors } from '../game/types';
 
 interface MosaicProps {
   wall: (TileType | null)[][]; // The wall grid from the player's board
@@ -14,7 +13,7 @@ const MosaicContainer = styled.div`
   grid-gap: 5px;
 `;
 
-const MosaicTile = styled.div<{ color?: string }>`
+const MosaicTile = styled.div<{ color?: string; filled: boolean }>`
   width: 40px;
   height: 40px;
   background-color: ${(props) => (props.color ? props.color : '#e0e0e0')};
@@ -24,8 +23,9 @@ const MosaicTile = styled.div<{ color?: string }>`
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: ${(props) => (props.filled ? 'bold' : 'normal')};
   color: ${(props) => (props.color ? '#fff' : '#000')};
+  opacity: ${(props) => (props.filled ? 1 : 0.2)}; /* Dim unfilled tiles */
 `;
 
 export const MosaicComponent: React.FC<MosaicProps> = ({ wall }) => {
@@ -33,7 +33,11 @@ export const MosaicComponent: React.FC<MosaicProps> = ({ wall }) => {
     <MosaicContainer>
       {wall.map((row, rowIndex) =>
         row.map((tile, colIndex) => (
-          <MosaicTile key={`${rowIndex}-${colIndex}`} color={tile?.color || undefined}>
+          <MosaicTile
+            key={`${rowIndex}-${colIndex}`}
+            color={tile?.color || DefaultMosaicColors[rowIndex][colIndex]} // Use default color if tile is null
+            filled={tile !== null} // Bold only if the tile is filled
+          >
             {tile ? '' : ''}
           </MosaicTile>
         ))

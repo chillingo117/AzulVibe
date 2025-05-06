@@ -28,12 +28,20 @@ const FactoriesContainer = styled.div`
   margin: 20px 0;
 `;
 
+const PlayerArea = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+`;
+
 const PlayerBoardsContainer = styled.div`
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: 40px; /* Add spacing between player boards */
-  margin-top: 20px;
+  flex-wrap: wrap; /* Allow wrapping if there are many players */
+  width: 100%;
 `;
 
 const Button = styled.button`
@@ -75,8 +83,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const [version, setVersion] = useState(0); // Add a version state to trigger re-renders
 
   const handleSelectTile = (color: string, factoryId?: number) => {
-    console.log('Selected tile color:', color);
-    console.log('Selected factory ID:', factoryId);
     const { selected, leftover } = game.selectTiles(color, factoryId);
     setSelectedTiles({ tiles: selected, color, factoryId });
 
@@ -85,7 +91,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
     // Remove tiles from the factory
     game.factories = game.factories.map((factory) =>
-    factory.id === factoryId ? { ...factory, tiles: [] } : factory
+      factory.id === factoryId ? { ...factory, tiles: [] } : factory
     );
   };
 
@@ -101,7 +107,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   };
 
   const handleEndRound = () => {
-    // Check if all tiles are taken
     const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
     const centerPoolEmpty = game.center.length === 0;
 
@@ -110,7 +115,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       return;
     }
 
-    // Update player scores and move to the next round
     game.updateScores();
     game.nextRound();
     setVersion((v) => v + 1); // Trigger a re-render
@@ -122,23 +126,21 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     const { tiles, factoryId } = selectedTiles;
 
     if (factoryId !== undefined) {
-      // Return tiles to the original factory
       const factory = game.factories.find((f) => f.id === factoryId);
       if (factory) {
         factory.tiles.push(...tiles);
         const toSendBackToFactory = game.center.filter((tile) => tile.selected);
         game.center = game.center.filter((tile) => !tile.selected);
 
-        toSendBackToFactory.forEach((tile) => (tile.selected = false)); // Reset selected state
+        toSendBackToFactory.forEach((tile) => (tile.selected = false));
         factory.tiles.push(...toSendBackToFactory);
       }
     } else {
-      // Return tiles to the center pool
       game.center.push(...tiles);
     }
-    tiles.forEach((tile) => (tile.selected = false)); // Reset selected state
+    tiles.forEach((tile) => (tile.selected = false));
 
-    setSelectedTiles(null); // Clear the selection
+    setSelectedTiles(null);
   };
 
   const canEndRound = () => {
@@ -152,10 +154,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <h1>Azul Game</h1>
       <div>Current Round: {game.round}</div>
 
-      {/* Conditionally render the End Round button */}
       {canEndRound() && <Button onClick={handleEndRound}>End Round</Button>}
 
-      {/* Selected Tiles */}
       <SelectedTilesComponent
         tiles={selectedTiles?.tiles || []}
         color={selectedTiles?.color || null}
@@ -185,17 +185,19 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
         ))}
       </FactoriesContainer>
 
-      {/* Player Boards */}
-      <PlayerBoardsContainer>
-        {game.players.map((player) => (
-          <PlayerBoardComponent
-            key={player.id}
-            player={player}
-            isCurrent={player.id === game.getCurrentPlayer().id}
-            onPlaceTiles={handlePlaceTiles}
-          />
-        ))}
-      </PlayerBoardsContainer>
+      {/* Player Area */}
+      <PlayerArea>
+        <PlayerBoardsContainer>
+          {game.players.map((player) => (
+            <PlayerBoardComponent
+              key={player.id}
+              player={player}
+              isCurrent={player.id === game.getCurrentPlayer().id}
+              onPlaceTiles={handlePlaceTiles}
+            />
+          ))}
+        </PlayerBoardsContainer>
+      </PlayerArea>
     </GameContainer>
   );
 };

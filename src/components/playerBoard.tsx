@@ -15,7 +15,7 @@ const PlayerBoardContainer = styled.div`
   border: 2px solid #003366;
   border-radius: 10px;
   padding: 20px;
-  width: 300px;
+  width: 500px;
   background-color: #f9f9f9;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 `;
@@ -59,7 +59,7 @@ const PatternLinesContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end; /* Align rows to the right */
-  gap: 10px;
+  gap: 3px;
 `;
 
 export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPlaceTiles }) => {

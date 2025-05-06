@@ -12,7 +12,6 @@ const MosaicContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(5, 40px);
   grid-gap: 5px;
-  margin-top: 20px;
 `;
 
 const MosaicTile = styled.div<{ color?: string }>`

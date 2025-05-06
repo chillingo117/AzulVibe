@@ -112,9 +112,19 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
     const currentPlayer = game.getCurrentPlayer();
     const tilesToPlace = selectedTiles.tiles;
-    
-    if(game.canPlaceTiles(currentPlayer.id, row, tilesToPlace)) {
-        game.placeTiles(currentPlayer.id, row, tilesToPlace);
+
+    let tilesWerePlaced = false;
+    if (row === -1) {
+      // Handle floor line placement
+      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+      tilesWerePlaced = true;
+    } else if (game.canPlaceTiles(currentPlayer.id, row, tilesToPlace)) {
+      game.placeTiles(currentPlayer.id, row, tilesToPlace);
+      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+      tilesWerePlaced = true;
+    }
+
+    if(tilesWerePlaced) {
         game.nextTurn();
         setSelectedTiles(null);
     }
@@ -123,8 +133,9 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const handleEndRound = () => {
     const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
     const centerPoolEmpty = game.center.length === 0;
+    const noSelectedTiles = selectedTiles === null;
 
-    if (!allFactoriesEmpty || !centerPoolEmpty) {
+    if (!allFactoriesEmpty || !centerPoolEmpty || !noSelectedTiles) {
       alert("You cannot end the round until all tiles are taken!");
       return;
     }
@@ -160,7 +171,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const canEndRound = () => {
     const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
     const centerPoolEmpty = game.center.length === 0;
-    return allFactoriesEmpty && centerPoolEmpty;
+    const noSelectedTiles = selectedTiles === null;
+    return allFactoriesEmpty && centerPoolEmpty && noSelectedTiles;
   };
 
   return (

@@ -30,3 +30,6 @@ export interface PlayerBoard {
   patternLines: (Tile | null)[][];
   floorLine: Tile[];
 }
+
+
+export const FloorLinePenalties = [-1, -1, -2, -2, -2, -3, -3]; // Penalties for each tile in the floor line

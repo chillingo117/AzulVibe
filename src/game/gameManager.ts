@@ -1,4 +1,4 @@
-import { AllColors, Factory, Player, PlayerBoard, Tile, DefaultMosaicColors } from './types';
+import { AllColors, Factory, Player, PlayerBoard, Tile, DefaultMosaicColors, FloorLinePenalties } from './types';
 
 /**
  * GameManager managers the game state
@@ -132,12 +132,11 @@ export class GameManager {
     this.center = this.center.map((t) => ({ ...t, selected: false }));
   }
 
-  resetFloorLines() {
+  resetFloorLines(): void {
     this.players.forEach((player) => {
-      player.board.floorLine = [];
+      player.board.floorLine = []; // Clear the floor line
     });
   }
-  
 
   shuffleTileBag() {
     for (let i = this.tileBag.length - 1; i > 0; i--) {
@@ -194,15 +193,22 @@ export class GameManager {
     return score;
   }
   
-  updateScores() {
+  updateScores(): void {
     this.players.forEach((player) => {
+      // Apply penalties for the floor line
+      const floorLine = player.board.floorLine;
+      const penaltyCount = Math.min(floorLine.length, FloorLinePenalties.length);
+      const penalty = FloorLinePenalties.slice(0, penaltyCount).reduce((sum, p) => sum + p, 0);
+
+      player.score += penalty; // Deduct points (penalty is negative)
+      if (player.score < 0) player.score = 0; // Ensure score doesn't go below 0
+
       // Move tiles to the mosaic wall
       this.moveTilesToMosaic(player);
-
-      // Calculate and update the player's score
-      const score = this.calculateScore(player);
-      player.score += score;
     });
+
+    // Reset floor lines after applying penalties
+    this.resetFloorLines();
   }
   
   nextRound() {
@@ -226,6 +232,15 @@ export class GameManager {
         player.board.patternLines[rowIndex] = Array(line.length).fill(null);
       }
     });
+  }
+
+  addToFloorLine(playerId: number, tiles: Tile[]): void {
+    const player = this.players[playerId];
+    const floorLine = player.board.floorLine;
+
+    // Add tiles to the floor line
+    floorLine.push(...tiles);
+    // Penalties are applied in the updateScores method
   }
   
 }

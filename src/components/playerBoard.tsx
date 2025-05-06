@@ -31,6 +31,8 @@ const PatternLine = styled.div`
 const FloorLine = styled.div`
   margin-top: 10px;
   font-weight: bold;
+  display: flex;
+  gap: 5px;
 `;
 
 const PlaceButton = styled.button`
@@ -63,6 +65,11 @@ const PatternLinesContainer = styled.div`
 `;
 
 export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPlaceTiles }) => {
+  const handlePlaceFloor = () => {
+    // Trigger the floor placement logic
+    onPlaceTiles(-1); // Use -1 to indicate the floor line
+  };
+
   return (
     <PlayerBoardContainer className={isCurrent ? 'current-player' : ''}>
       <h2>{player.name} (Score: {player.score})</h2>
@@ -83,9 +90,13 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
 
           {/* Floor Line */}
           <FloorLine>
-            <strong>Floor:</strong> {player.board.floorLine.map((tile, idx) => (
+            <strong>Floor:</strong>
+            {player.board.floorLine.map((tile, idx) => (
               <Tile key={idx} tile={tile} />
             ))}
+            {isCurrent && (
+              <PlaceButton onClick={handlePlaceFloor}>Place Floor</PlaceButton>
+            )}
           </FloorLine>
         </PatternLinesContainer>
 

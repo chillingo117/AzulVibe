@@ -71,24 +71,12 @@ export class GameManager {
 
   //Tile Management
   selectTiles(factoryId: number, color: string): { selected: Tile[]; leftover: Tile[] } {
-    let selected: Tile[] = [];
-    let leftover: Tile[] = [];
-  
-    const tiles = factoryId === -1 ? this.center : this.factories[factoryId].tiles;
-  
-    for (const tile of tiles) {
-      if (tile === color) selected.push(tile);
-      else leftover.push(tile);
-    }
-  
-    // Clear source
-    if (factoryId === -1) {
-      this.center = [];
-    } else {
-      this.factories[factoryId].tiles = [];
-      this.center.push(...leftover);
-    }
-  
+    const factory = this.factories.find((f) => f.id === factoryId);
+    if (!factory) throw new Error(`Factory with ID ${factoryId} not found`);
+
+    const selected = factory.tiles.filter((tile) => tile === color);
+    const leftover = factory.tiles.filter((tile) => tile !== color);
+
     return { selected, leftover };
   }
 

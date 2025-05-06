@@ -2,10 +2,14 @@ import React, { useRef, useState } from 'react';
 import { GameManager } from '../game/gameManager';
 import { FactoryComponent } from './factory';
 import { PlayerBoardComponent } from './playerBoard';
-import { Color } from '../game/types';
 import styled from 'styled-components';
+import { Color } from '../game/types';
 
-// Game Container
+interface GameProps {
+  playerNames: string[];
+}
+
+// Styled Components
 const GameContainer = styled.div`
   font-family: 'Arial', sans-serif;
   display: flex;
@@ -15,7 +19,21 @@ const GameContainer = styled.div`
   background-color: #f0f8ff;
 `;
 
-// Button with Hover Effect
+const FactoriesContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+`;
+
+const PlayerBoardsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+`;
+
 const Button = styled.button`
   background-color: #003366;
   color: white;
@@ -25,53 +43,24 @@ const Button = styled.button`
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #005b99;
   }
 `;
 
-// Player Display
-const PlayerList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const Player = styled.div`
-  background-color: #f0f8ff;
+const CenterPool = styled.div`
+  margin: 20px 0;
   padding: 10px;
-  border: 1px solid #003366;
-  border-radius: 5px;
-  width: 200px;
-  text-align: center;
-`;
-
-interface TileProps {
-    color: string; // Tile is just a color, so we expect a string for color
-  }
-  
-
-// Factory Tile
-const Tile = styled.div<TileProps>`
-  width: 50px;
-  height: 50px;
-  border-radius: 5px;
-  background-color: ${(props) => props.color};
+  border: 2px solid #003366;
+  border-radius: 10px;
+  background-color: #f9f9f9;
   display: flex;
+  gap: 10px;
   justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  
-  &:hover {
-    background-color: #ffb84d; /* Yellow highlight on hover */
-  }
 `;
 
-
-export const Game: React.FC = () => {
-  const playerNames = ['Alice', 'Bob'];
+export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const gameManagerRef = useRef(new GameManager(playerNames));
   const [version, setVersion] = useState(0);
   const game = gameManagerRef.current;
@@ -79,26 +68,34 @@ export const Game: React.FC = () => {
   const [selectedTiles, setSelectedTiles] = useState<{ tiles: Color[]; color: string } | null>(null);
 
   const handleSelectTile = (color: string, factoryId: number) => {
-    const { selected } = game.selectTiles(factoryId, color);
+    const { selected, leftover } = game.selectTiles(factoryId, color); // Get selected and leftover tiles
     setSelectedTiles({ tiles: selected, color });
-    setVersion(v => v + 1); // Trigger re-render
+
+    // Move leftover tiles to the center pool
+    game.center = [...game.center, ...leftover];
+
+    // Remove tiles from the factory
+    game.factories = game.factories.map((factory) =>
+      factory.id === factoryId ? { ...factory, tiles: [] } : factory
+    );
+
+    setVersion((v) => v + 1); // Trigger re-render
   };
-  
+
   const handlePlaceTiles = (row: number) => {
     if (!selectedTiles) return;
     const currentPlayer = game.getCurrentPlayer();
     game.placeTiles(currentPlayer.id, row, [...selectedTiles.tiles]);
     game.nextTurn();
     setSelectedTiles(null);
-    setVersion(v => v + 1); // Trigger re-render
+    setVersion((v) => v + 1); // Trigger re-render
   };
 
   const handleEndRound = () => {
-    game.updateScores();  // Update player scores
-    game.nextRound();     // Move to the next round
-    setVersion((v) => v + 1);  // Trigger re-render by incrementing version
+    game.updateScores(); // Update player scores
+    game.nextRound(); // Move to the next round
+    setVersion((v) => v + 1); // Trigger re-render
   };
-  
 
   return (
     <GameContainer>
@@ -106,23 +103,38 @@ export const Game: React.FC = () => {
       <div>Current Round: {game.round}</div>
       <Button onClick={handleEndRound}>End Round</Button>
 
-      <PlayerList>
-        {game.players.map((player) => (
-          <Player key={player.id}>
-            {player.name}: {player.score} points
-          </Player>
-        ))}
-      </PlayerList>
-
-      <div className="factory-container">
-        {game.factories.map((factory, idx) => (
-          <div key={idx} className="factory">
-            {factory.tiles.map((tile, tileIdx) => (
-              <Tile key={tileIdx} color={tile} />
-            ))}
+      {/* Center Pool */}
+      <CenterPool>
+        <h3>Center Pool:</h3>
+        {game.center.map((tile, idx) => (
+          <div key={idx} className="tile" style={{ backgroundColor: tile }}>
+            {tile}
           </div>
         ))}
-      </div>
+      </CenterPool>
+
+      {/* Factories */}
+      <FactoriesContainer>
+        {game.factories.map((factory, idx) => (
+          <FactoryComponent
+            key={idx}
+            factory={factory}
+            onSelectTile={handleSelectTile}
+          />
+        ))}
+      </FactoriesContainer>
+
+      {/* Player Boards */}
+      <PlayerBoardsContainer>
+        {game.players.map((player) => (
+          <PlayerBoardComponent
+            key={player.id}
+            player={player}
+            isCurrent={player.id === game.getCurrentPlayer().id}
+            onPlaceTiles={handlePlaceTiles}
+          />
+        ))}
+      </PlayerBoardsContainer>
     </GameContainer>
   );
 };

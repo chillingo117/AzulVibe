@@ -8,13 +8,15 @@ interface Props {
 
 export const FactoryComponent: React.FC<Props> = ({ factory, onSelectTile }) => {
   const handleClick = (tile: string) => {
-    onSelectTile(tile, factory.id);
+    onSelectTile(tile, factory.id); // Ensure this passes the correct factory ID and tile color
   };
 
   return (
     <div className="factory">
       {factory.tiles.map((tile, idx) => (
-        <button key={idx} onClick={() => handleClick(tile)}>{tile}</button>
+        <button key={idx} onClick={() => handleClick(tile)}>
+          {tile}
+        </button>
       ))}
     </div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Factory } from '../game/types';
 import { Tile } from './tile';
+import { AreaDiv, theme } from '../utils/sharedStyles';
 
 interface Props {
   factory: Factory;
@@ -9,11 +10,11 @@ interface Props {
 }
 
 // Styled Components
-const FactoryContainer = styled.div`
-  border: 2px solid #003366;
+const FactoryContainer = styled(AreaDiv)`
+  border: 2px solid ${theme.colors.border};
   border-radius: 10px;
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: ${theme.colors.areaBackground};
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

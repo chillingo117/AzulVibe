@@ -2,6 +2,10 @@
 Once upon a time, I made a very nice MCTS based bot to play Azul. However, that project is private and I am not allowed to share that code outside of the course.
 So I built my own vibe-coded Azul page in a single afternoon using chatGPT and Copilot.
 
+## Base
+At its base, this project is Azul implemented in Typescript. See the rules for Azul [here](https://www.wikihow.com/Play-Azul).
+
+
 ## GPT
 I found GPT to be great at quickly getting the boilerplate up, but it really fell apart after repeated failing to implement the more complex rules of Azul.
 

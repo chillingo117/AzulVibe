@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { Tile as TileType } from '../game/types';
 import { Tile } from './tile';
 import { SelectedTilesComponent } from './selectedTiles';
+import { ActionButton, theme } from '../utils/sharedStyles';
 
 interface GameProps {
   playerNames: string[];
@@ -13,12 +14,11 @@ interface GameProps {
 
 // Styled Components
 const GameContainer = styled.div`
-  font-family: 'Arial', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background-color: #f0f8ff;
+  background-color: ${theme.colors.background};
 `;
 
 const FactoriesContainer = styled.div`
@@ -28,43 +28,25 @@ const FactoriesContainer = styled.div`
   margin: 20px 0;
 `;
 
-const PlayerArea = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  width: 100%;
-`;
-
 const PlayerBoardsContainer = styled.div`
   display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
+  margin-top: 20px;
   gap: 40px; /* Add spacing between player boards */
   flex-wrap: wrap; /* Allow wrapping if there are many players */
   width: 100%;
 `;
 
-const Button = styled.button`
-  background-color: #003366;
-  color: white;
-  font-size: 16px;
-  padding: 10px 20px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #005b99;
-  }
-`;
+const EndRoundButton = styled(ActionButton)``;
 
 const CenterPool = styled.div`
   margin: 20px 0;
   padding: 10px;
-  border: 2px solid #003366;
+  border: 2px solid ${theme.colors.border};
   border-radius: 10px;
-  background-color: #f9f9f9;
+  background-color: ${theme.colors.areaBackground};
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -111,27 +93,27 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const handlePlaceTiles = (row: number) => {
     if (!selectedTiles) return;
 
-    const currentPlayer = game.getCurrentPlayer();
+    const currentPlayer = game.currentPlayerIndex;
     const tilesToPlace = selectedTiles.tiles;
 
     let tilesWerePlaced = false;
     if (row === -1) {
       // Handle floor line placement
-      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+      game.addToFloorLine(currentPlayer, tilesToPlace);
       tilesWerePlaced = true;
-    } else if (game.canPlaceTiles(currentPlayer.id, row, tilesToPlace)) {
-      game.placeTiles(currentPlayer.id, row, tilesToPlace);
-      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+    } else if (game.canPlaceTiles(currentPlayer, row, tilesToPlace)) {
+      game.placeTiles(currentPlayer, row, tilesToPlace);
       tilesWerePlaced = true;
     }
 
     if(tilesWerePlaced) {
-        game.nextTurn();
+        game.advanceToNextPlayer();
         setSelectedTiles(null);
     }
   };
 
   const handleEndRound = () => {
+    // Check if all factories and center pool are empty, and no tiles are yet to be placed
     const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
     const centerPoolEmpty = game.center.length === 0;
     const noSelectedTiles = selectedTiles === null;
@@ -141,7 +123,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       return;
     }
 
-    game.updateScores();
     game.nextRound();
     setVersion((v) => v + 1); // Trigger a re-render
   };
@@ -181,7 +162,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <h1>Azul Game</h1>
       <div>Current Round: {game.round}</div>
 
-      {canEndRound() && <Button onClick={handleEndRound}>End Round</Button>}
+      {canEndRound() && <EndRoundButton onClick={handleEndRound}>End Round</EndRoundButton>}
 
       {/* Center Pool and Selected Tiles */}
       <CenterAndSelectedContainer>
@@ -216,18 +197,16 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       </FactoriesContainer>
 
       {/* Player Area */}
-      <PlayerArea>
-        <PlayerBoardsContainer>
-          {game.players.map((player) => (
-            <PlayerBoardComponent
-              key={player.id}
-              player={player}
-              isCurrent={player.id === game.getCurrentPlayer().id}
-              onPlaceTiles={handlePlaceTiles}
-            />
-          ))}
-        </PlayerBoardsContainer>
-      </PlayerArea>
+      <PlayerBoardsContainer>
+        {game.players.map((player) => (
+          <PlayerBoardComponent
+            key={player.id}
+            player={player}
+            isCurrent={player.id === game.currentPlayerIndex}
+            onPlaceTiles={handlePlaceTiles}
+          />
+        ))}
+      </PlayerBoardsContainer>
     </GameContainer>
   );
 };

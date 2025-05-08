@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Tile } from './tile';
 import { Tile as TileType } from '../game/types';
+import { ActionButton, theme } from '../utils/sharedStyles';
 
 interface SelectedTilesProps {
   tiles: TileType[]; // Array of selected tile colors
@@ -11,10 +12,10 @@ interface SelectedTilesProps {
 
 // Styled Components
 const SelectedTilesContainer = styled.div`
-  border: 2px solid #003366;
+  border: 2px solid ${theme.colors.border};
   border-radius: 10px;
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: ${theme.colors.areaBackground};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,18 +28,10 @@ const TilesRow = styled.div`
   gap: 5px;
 `;
 
-const ClearButton = styled.button`
-  background-color: #ff4d4d;
-  color: white;
-  font-size: 14px;
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
-
+const ClearButton = styled(ActionButton)`
+  background-color: ${theme.colors.warning};
   &:hover {
-    background-color: #cc0000;
+    background-color: ${theme.colors.danger};
   }
 `;
 

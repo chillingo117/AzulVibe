@@ -13,7 +13,7 @@ const MosaicContainer = styled.div`
   grid-gap: 5px;
 `;
 
-const MosaicTile = styled.div<{ color?: string; filled: boolean }>`
+const MosaicTile = styled.div<{ color?: string; $occupied: boolean }>`
   width: 40px;
   height: 40px;
   background-color: ${(props) => (props.color ? props.color : '#e0e0e0')};
@@ -23,9 +23,9 @@ const MosaicTile = styled.div<{ color?: string; filled: boolean }>`
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: ${(props) => (props.filled ? 'bold' : 'normal')};
+  font-weight: ${(props) => (props.$occupied ? 'bold' : 'normal')};
   color: ${(props) => (props.color ? '#fff' : '#000')};
-  opacity: ${(props) => (props.filled ? 1 : 0.2)}; /* Dim unfilled tiles */
+  opacity: ${(props) => (props.$occupied ? 1 : 0.2)}; /* Dim unfilled tiles */
 `;
 
 export const MosaicComponent: React.FC<MosaicProps> = ({ wall }) => {
@@ -36,7 +36,7 @@ export const MosaicComponent: React.FC<MosaicProps> = ({ wall }) => {
           <MosaicTile
             key={`${rowIndex}-${colIndex}`}
             color={tile?.color || DefaultMosaicColors[rowIndex][colIndex]} // Use default color if tile is null
-            filled={tile !== null} // Bold only if the tile is filled
+            $occupied={tile !== null} // Bold only if the tile is occupied
           >
             {tile ? '' : ''}
           </MosaicTile>

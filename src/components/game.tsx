@@ -93,27 +93,27 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const handlePlaceTiles = (row: number) => {
     if (!selectedTiles) return;
 
-    const currentPlayer = game.getCurrentPlayer();
+    const currentPlayer = game.currentPlayerIndex;
     const tilesToPlace = selectedTiles.tiles;
 
     let tilesWerePlaced = false;
     if (row === -1) {
       // Handle floor line placement
-      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+      game.addToFloorLine(currentPlayer, tilesToPlace);
       tilesWerePlaced = true;
-    } else if (game.canPlaceTiles(currentPlayer.id, row, tilesToPlace)) {
-      game.placeTiles(currentPlayer.id, row, tilesToPlace);
-      game.addToFloorLine(currentPlayer.id, tilesToPlace);
+    } else if (game.canPlaceTiles(currentPlayer, row, tilesToPlace)) {
+      game.placeTiles(currentPlayer, row, tilesToPlace);
       tilesWerePlaced = true;
     }
 
     if(tilesWerePlaced) {
-        game.nextTurn();
+        game.advanceToNextPlayer();
         setSelectedTiles(null);
     }
   };
 
   const handleEndRound = () => {
+    // Check if all factories and center pool are empty, and no tiles are yet to be placed
     const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
     const centerPoolEmpty = game.center.length === 0;
     const noSelectedTiles = selectedTiles === null;
@@ -123,7 +123,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       return;
     }
 
-    game.updateScores();
     game.nextRound();
     setVersion((v) => v + 1); // Trigger a re-render
   };
@@ -203,7 +202,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
           <PlayerBoardComponent
             key={player.id}
             player={player}
-            isCurrent={player.id === game.getCurrentPlayer().id}
+            isCurrent={player.id === game.currentPlayerIndex}
             onPlaceTiles={handlePlaceTiles}
           />
         ))}

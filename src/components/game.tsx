@@ -30,7 +30,7 @@ const FactoriesContainer = styled.div`
 
 const PlayerBoardsContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   margin-top: 20px;

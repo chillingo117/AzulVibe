@@ -4,6 +4,7 @@ So I built my own vibe-coded Azul page in a single afternoon using chatGPT and C
 
 ## Base
 At its base, this project is Azul implemented in Typescript. See the rules for Azul [here](https://www.wikihow.com/Play-Azul).
+See the companion repo for the backend [service](https://github.com/chillingo117/azul-bot). This service exposes a function which invokes a MCTS based AI to play Azul.
 
 
 ## GPT

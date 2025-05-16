@@ -101,27 +101,25 @@ export class GameManager {
 
           // Starting with the tile to the left of the current tile, check if it is there, if so, increment score and move left
           if(colIndex > 0){
-            for (let i = colIndex-1; player.board.wall[rowIndex][i] !== null; i--) {
-              console.log(i);
-              console.log(player.board.wall[rowIndex][i]);
+            for (let i = colIndex-1; i >= 0 && player.board.wall[rowIndex][i] !== null; i--) {
               player.score++;
             }
           }
           // Ditto for the right side
           if(colIndex < 4) {
-            for (let i = colIndex+1; player.board.wall[rowIndex][i] !== null; i++) {
+            for (let i = colIndex + 1; i < 5 && player.board.wall[rowIndex][i] !== null; i++) {
               player.score++;
             }
           }
           // Ditto for upwards
           if(rowIndex > 0) {
-            for (let i = rowIndex-1; player.board.wall[i][colIndex] !== null; i--) {
+            for (let i = rowIndex-1; i >= 0 && player.board.wall[i][colIndex] !== null; i--) {
               player.score++;
             }
           }
           // Ditto for downwards
           if(rowIndex < 4) {
-            for (let i = rowIndex+1; player.board.wall[i][colIndex] !== null; i++) {
+            for (let i = rowIndex+1; i < 5 && player.board.wall[i][colIndex] !== null; i++) {
               player.score++;
             }
           }
@@ -183,11 +181,11 @@ export class GameManager {
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
   }  
 
-  selectTiles(color: string, factoryId?: number): { selected: Tile[]; leftover: Tile[] } {
+  selectTiles(color: string, factoryId?: number): Tile[] {
     if(factoryId === undefined) {
       const selected = this.center.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
       this.center = this.center.filter((tile) => tile.color !== color);
-      return { selected, leftover: [] };
+      return selected;
     }
 
     const factory = this.factories.find((f) => f.id === factoryId);
@@ -196,9 +194,14 @@ export class GameManager {
     const selected = factory.tiles.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
     const leftover = factory.tiles.filter((tile) => tile.color !== color).map((tile) => ({ ...tile, selected: true }));
 
-      // Move leftover tiles to the center pool
-      this.center = [...this.center, ...leftover];
-    return { selected, leftover };
+    // Remove tiles from the factory
+    this.factories = this.factories.map((factory) =>
+      factory.id === factoryId ? { ...factory, tiles: [] } : factory
+    );
+
+    // Move leftover tiles to the center pool
+    this.center = [...this.center, ...leftover];
+    return selected;
   }
 
   canPlaceTiles(playerId: number, row: number, tiles: Tile[]): boolean {

@@ -7,6 +7,7 @@ import { Tile as TileType } from '../game/types';
 import { Tile } from './tile';
 import { SelectedTilesComponent } from './selectedTiles';
 import { ActionButton, theme } from '../utils/sharedStyles';
+import AiMoveButton from './AiMoveButton';
 
 interface GameProps {
   playerNames: string[];
@@ -78,13 +79,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       // If tiles are already selected, clear the selection
       handleClearSelection();
     }
-    const { selected, leftover } = game.selectTiles(color, factoryId);
+    const selected = game.selectTiles(color, factoryId);
     setSelectedTiles({ tiles: selected, color, factoryId });
-
-    // Remove tiles from the factory
-    game.factories = game.factories.map((factory) =>
-      factory.id === factoryId ? { ...factory, tiles: [] } : factory
-    );
   };
 
   const handlePlaceTiles = (row: number) => {
@@ -154,12 +150,20 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     return allFactoriesEmpty && centerPoolEmpty && noSelectedTiles;
   };
 
+  const handleAiMove = () => {
+    // Trigger a re-render after AI move is executed
+    setVersion(v => v + 1);
+  };
+
   return (
     <GameContainer>
       <h1>Azul Game</h1>
       <div>Current Round: {game.round}</div>
-
-      {canEndRound() && <EndRoundButton onClick={handleEndRound}>End Round</EndRoundButton>}
+    
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        {canEndRound() && <EndRoundButton onClick={handleEndRound}>End Round</EndRoundButton>}
+        {!canEndRound() && <AiMoveButton gameManager={game} onMoveExecuted={handleAiMove} />}        
+      </div>
 
       {/* Center Pool and Selected Tiles */}
       <CenterAndSelectedContainer>

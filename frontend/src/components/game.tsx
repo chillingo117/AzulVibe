@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { GameManager } from '../game/gameManager';
 import { FactoryComponent } from './factory';
 import { PlayerBoardComponent } from './playerBoard';
@@ -74,6 +74,22 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   // eslint-disable-next-line
   const [_, setVersion] = useState(0); // Add a version state to trigger re-renders
 
+  // AI service availability state
+  const [aiAvailable, setAiAvailable] = useState(false);
+
+  useEffect(() => {
+    // Check if AI backend is available
+    const checkAiService = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/heartbeat', { method: 'GET' });
+        setAiAvailable(res.ok);
+      } catch {
+        setAiAvailable(false);
+      }
+    };
+    checkAiService();
+  }, []);
+
   const handleSelectTile = (color: string, factoryId?: number) => {
     if (selectedTiles) {
       // If tiles are already selected, clear the selection
@@ -90,11 +106,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     const tilesToPlace = selectedTiles.tiles;
 
     let tilesWerePlaced = false;
-    if (row === -1) {
-      // Handle floor line placement
-      game.addToFloorLine(currentPlayer, tilesToPlace);
-      tilesWerePlaced = true;
-    } else if (game.canPlaceTiles(currentPlayer, row, tilesToPlace)) {
+    if (game.canPlaceTiles(currentPlayer, row, tilesToPlace)) {
       game.placeTiles(currentPlayer, row, tilesToPlace);
       tilesWerePlaced = true;
     }
@@ -162,7 +174,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         {canEndRound() && <EndRoundButton onClick={handleEndRound}>End Round</EndRoundButton>}
-        {!canEndRound() && <AiMoveButton gameManager={game} onMoveExecuted={handleAiMove} />}        
+        {!canEndRound() && aiAvailable && <AiMoveButton gameManager={game} onMoveExecuted={handleAiMove} />}        
       </div>
 
       {/* Center Pool and Selected Tiles */}

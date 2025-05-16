@@ -205,6 +205,10 @@ export class GameManager {
   }
 
   canPlaceTiles(playerId: number, row: number, tiles: Tile[]): boolean {
+    if(row === -1){
+      return true; // No restrictions for floor line
+    }
+
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
     const wallRow = player.board.wall[row];
@@ -235,21 +239,26 @@ export class GameManager {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
 
-    // Place tiles in the pattern line
-    for (let i = 0; i < line.length && tiles.length > 0; i++) {
-      if (line[i] === null) {
-        line[i] = tiles.shift()!;
+    if(row === -1) {
+      // If row is -1, add to floor line
+      this.addToFloorLine(playerId, tiles);
+    } else {
+      // Place tiles in the pattern line
+      for (let i = 0; i < line.length && tiles.length > 0; i++) {
+        if (line[i] === null) {
+          line[i] = tiles.shift()!;
+        }
       }
-    }
 
-    // Leftovers go to the floor line
-    player.board.floorLine.push(...tiles);
+      // Leftovers go to the floor line
+      player.board.floorLine.push(...tiles);
+    }
 
     // Reset selected state for tiles in the center
     this.center = this.center.map((t) => ({ ...t, selected: false }));
   }
 
-  addToFloorLine(playerId: number, tiles: Tile[]): void {
+  private addToFloorLine(playerId: number, tiles: Tile[]): void {
     const player = this.players[playerId];
     const floorLine = player.board.floorLine;
 

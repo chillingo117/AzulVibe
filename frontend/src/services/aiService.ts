@@ -18,7 +18,7 @@ export const getAiMove = async (gameState: GameManager): Promise<AiMove> => {
     };
 
     // Make API call to Lambda
-    const response = await fetch('http://localhost:3001/lambda', {
+    const response = await fetch('http://localhost:3001/lambda/mcts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

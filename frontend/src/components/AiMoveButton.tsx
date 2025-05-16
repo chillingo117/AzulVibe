@@ -27,12 +27,10 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({ gameManager, onMoveExecuted
       );
       
       // Place tiles according to AI decision. -1 means floor line
-      if (aiMove.patternLine !== -1 && gameManager.canPlaceTiles(currentPlayerId, aiMove.patternLine, selected)) {
+      if (gameManager.canPlaceTiles(currentPlayerId, aiMove.patternLine, selected)) {
         gameManager.placeTiles(currentPlayerId, aiMove.patternLine, selected);
       } else {
         console.warn('AI WARN: Cannot place tiles in the selected pattern line. Adding to floor line instead.');
-        // If can't place in pattern line, add to floor line
-        gameManager.addToFloorLine(currentPlayerId, selected);
       }
       
       // Advance to next player

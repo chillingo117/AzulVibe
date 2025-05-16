@@ -81,9 +81,6 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
     const { selected, leftover } = game.selectTiles(color, factoryId);
     setSelectedTiles({ tiles: selected, color, factoryId });
 
-    // Move leftover tiles to the center pool
-    game.center = [...game.center, ...leftover];
-
     // Remove tiles from the factory
     game.factories = game.factories.map((factory) =>
       factory.id === factoryId ? { ...factory, tiles: [] } : factory

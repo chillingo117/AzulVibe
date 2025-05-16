@@ -196,6 +196,8 @@ export class GameManager {
     const selected = factory.tiles.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
     const leftover = factory.tiles.filter((tile) => tile.color !== color).map((tile) => ({ ...tile, selected: true }));
 
+      // Move leftover tiles to the center pool
+      this.center = [...this.center, ...leftover];
     return { selected, leftover };
   }
 

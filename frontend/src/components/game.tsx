@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { GameManager } from '../game/gameManager';
 import { FactoryComponent } from './factory';
 import { PlayerBoardComponent } from './playerBoard';

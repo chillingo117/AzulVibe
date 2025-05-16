@@ -6,7 +6,6 @@ import { ActionButton, theme } from '../utils/sharedStyles';
 
 interface SelectedTilesProps {
   tiles: TileType[]; // Array of selected tile colors
-  color: string | null; // The color of the selected tiles
   onClearSelection: () => void; // Callback to clear the selection
 }
 
@@ -35,7 +34,7 @@ const ClearButton = styled(ActionButton)`
   }
 `;
 
-export const SelectedTilesComponent: React.FC<SelectedTilesProps> = ({ tiles, color, onClearSelection }) => {
+export const SelectedTilesComponent: React.FC<SelectedTilesProps> = ({ tiles, onClearSelection }) => {
   return (
     <SelectedTilesContainer>
       <h3>Selected Tiles</h3>

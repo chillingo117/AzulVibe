@@ -61,8 +61,7 @@ export const PlayerBoardComponent: React.FC<Props> = ({ player, isCurrent, onPla
 
   return (
     <PlayerBoardContainer className={isCurrent ? 'current-player' : ''}>
-      <h2>{player.name} (Score: {player.score})</h2>
-
+      <h2>{player.name} (Score: {player.score})</h2>   
       <BoardContent>
         {/* Pattern Rows */}
         <PatternLinesContainer>

@@ -1,12 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { GameManager } from '../game/gameManager';
 import { FactoryComponent } from './factory';
 import { PlayerBoardComponent } from './playerBoard';
 import styled from 'styled-components';
-import { Tile as TileType } from '../game/types';
 import { Tile } from './tile';
 import { SelectedTilesComponent } from './selectedTiles';
-import { ActionButton, theme } from '../utils/sharedStyles';
+import { theme } from '../utils/sharedStyles';
+import AiControls from './AiControls';
 
 interface GameProps {
   playerNames: string[];
@@ -39,8 +39,6 @@ const PlayerBoardsContainer = styled.div`
   width: 100%;
 `;
 
-const EndRoundButton = styled(ActionButton)``;
-
 const CenterPool = styled.div`
   margin: 20px 0;
   padding: 10px;
@@ -64,111 +62,56 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   const gameManagerRef = useRef(new GameManager(playerNames));
   const game = gameManagerRef.current;
 
-  const [selectedTiles, setSelectedTiles] = useState<{
-    tiles: TileType[];
-    color: string;
-    factoryId?: number;
-  } | null>(null);
-
   // eslint-disable-next-line
   const [_, setVersion] = useState(0); // Add a version state to trigger re-renders
 
   const handleSelectTile = (color: string, factoryId?: number) => {
-    if (selectedTiles) {
-      // If tiles are already selected, clear the selection
+    if (game.selected) {
       handleClearSelection();
     }
-    const { selected, leftover } = game.selectTiles(color, factoryId);
-    setSelectedTiles({ tiles: selected, color, factoryId });
-
-    // Move leftover tiles to the center pool
-    game.center = [...game.center, ...leftover];
-
-    // Remove tiles from the factory
-    game.factories = game.factories.map((factory) =>
-      factory.id === factoryId ? { ...factory, tiles: [] } : factory
-    );
+    game.selectTiles(color, factoryId);
+    setVersion(v => v + 1);
   };
 
   const handlePlaceTiles = (row: number) => {
-    if (!selectedTiles) return;
-
+    if (!game.selected) return;
     const currentPlayer = game.currentPlayerIndex;
-    const tilesToPlace = selectedTiles.tiles;
-
-    let tilesWerePlaced = false;
-    if (row === -1) {
-      // Handle floor line placement
-      game.addToFloorLine(currentPlayer, tilesToPlace);
-      tilesWerePlaced = true;
-    } else if (game.canPlaceTiles(currentPlayer, row, tilesToPlace)) {
-      game.placeTiles(currentPlayer, row, tilesToPlace);
-      tilesWerePlaced = true;
+    if (game.canPlaceTiles(currentPlayer, row)) {
+      game.placeTiles(currentPlayer, row);
     }
-
-    if(tilesWerePlaced) {
-        game.advanceToNextPlayer();
-        setSelectedTiles(null);
-    }
-  };
-
-  const handleEndRound = () => {
-    // Check if all factories and center pool are empty, and no tiles are yet to be placed
-    const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
-    const centerPoolEmpty = game.center.length === 0;
-    const noSelectedTiles = selectedTiles === null;
-
-    if (!allFactoriesEmpty || !centerPoolEmpty || !noSelectedTiles) {
-      alert("You cannot end the round until all tiles are taken!");
-      return;
-    }
-
-    game.nextRound();
-    setVersion((v) => v + 1); // Trigger a re-render
+    setVersion(v => v + 1);
   };
 
   const handleClearSelection = () => {
-    if (!selectedTiles) return;
-
-    const { tiles, factoryId } = selectedTiles;
-
-    if (factoryId !== undefined) {
-      const factory = game.factories.find((f) => f.id === factoryId);
-      if (factory) {
-        factory.tiles.push(...tiles);
-        const toSendBackToFactory = game.center.filter((tile) => tile.selected);
-        game.center = game.center.filter((tile) => !tile.selected);
-
-        toSendBackToFactory.forEach((tile) => (tile.selected = false));
-        factory.tiles.push(...toSendBackToFactory);
-      }
-    } else {
-      game.center.push(...tiles);
-    }
-    tiles.forEach((tile) => (tile.selected = false));
-
-    setSelectedTiles(null);
+    game.unselectTiles();
+    setVersion(v => v + 1);
   };
 
-  const canEndRound = () => {
-    const allFactoriesEmpty = game.factories.every((factory) => factory.tiles.length === 0);
-    const centerPoolEmpty = game.center.length === 0;
-    const noSelectedTiles = selectedTiles === null;
-    return allFactoriesEmpty && centerPoolEmpty && noSelectedTiles;
+  const preAiMoveHook = () => {
+    handleClearSelection();
+  }
+
+  const handleAiMove = () => {
+    setVersion(v => v + 1);
   };
 
   return (
     <GameContainer>
       <h1>Azul Game</h1>
       <div>Current Round: {game.round}</div>
-
-      {canEndRound() && <EndRoundButton onClick={handleEndRound}>End Round</EndRoundButton>}
+    
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <AiControls
+          gameManager={game}
+          onMoveExecuted={handleAiMove}
+          preMoveHook={preAiMoveHook}
+        />
+      </div>
 
       {/* Center Pool and Selected Tiles */}
       <CenterAndSelectedContainer>
         <SelectedTilesComponent
-            tiles={selectedTiles?.tiles || []}
-            color={selectedTiles?.color || null}
+            tiles={game.selected?.tiles || []}
             onClearSelection={handleClearSelection}
         />
 

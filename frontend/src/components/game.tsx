@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { Tile } from './tile';
 import { SelectedTilesComponent } from './selectedTiles';
 import { theme } from '../utils/sharedStyles';
-import AiMoveButton from './AiMoveButton';
+import AiControls from './AiControls';
 
 interface GameProps {
   playerNames: string[];
@@ -65,25 +65,8 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   // eslint-disable-next-line
   const [_, setVersion] = useState(0); // Add a version state to trigger re-renders
 
-  // AI service availability state
-  const [aiAvailable, setAiAvailable] = useState(false);
-
-  useEffect(() => {
-    // Check if AI backend is available
-    const checkAiService = async () => {
-      try {
-        const res = await fetch('http://localhost:3001/heartbeat', { method: 'GET' });
-        setAiAvailable(res.ok);
-      } catch {
-        setAiAvailable(false);
-      }
-    };
-    checkAiService();
-  }, []);
-
   const handleSelectTile = (color: string, factoryId?: number) => {
     if (game.selected) {
-      // If tiles are already selected, clear the selection
       handleClearSelection();
     }
     game.selectTiles(color, factoryId);
@@ -92,9 +75,7 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
 
   const handlePlaceTiles = (row: number) => {
     if (!game.selected) return;
-
     const currentPlayer = game.currentPlayerIndex;
-
     if (game.canPlaceTiles(currentPlayer, row)) {
       game.placeTiles(currentPlayer, row);
     }
@@ -107,12 +88,10 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
   };
 
   const preAiMoveHook = () => {
-    // Clear any existing tile selection before AI move
     handleClearSelection();
   }
 
   const handleAiMove = () => {
-    // Trigger a re-render after AI move is executed
     setVersion(v => v + 1);
   };
 
@@ -122,7 +101,11 @@ export const Game: React.FC<GameProps> = ({ playerNames }) => {
       <div>Current Round: {game.round}</div>
     
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        {aiAvailable && <AiMoveButton gameManager={game} onMoveExecuted={handleAiMove} preMoveHook={preAiMoveHook}/>}        
+        <AiControls
+          gameManager={game}
+          onMoveExecuted={handleAiMove}
+          preMoveHook={preAiMoveHook}
+        />
       </div>
 
       {/* Center Pool and Selected Tiles */}

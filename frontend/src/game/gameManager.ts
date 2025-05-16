@@ -211,7 +211,7 @@ export class GameManager {
   }
 
   unselectTiles() {
-    if (this.selected !== null && this.selected?.tiles.length === 0) return;
+    if (this.selected === null || this.selected?.tiles.length === 0) return;
 
     const { tiles, factoryId } = this.selected!;
 

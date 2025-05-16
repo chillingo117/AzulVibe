@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameManager } from '../game/gameManager';
 import { getAiMove } from '../services/aiService';
 
@@ -15,9 +15,14 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [autoAi, setAutoAi] = useState(false);
+  const autoAiRef = useRef(autoAi);
 
   // AI service availability state
   const [aiAvailable, setAiAvailable] = useState(false);
+
+  useEffect(() => {
+    autoAiRef.current = autoAi;
+  }, [autoAi]);
 
   useEffect(() => {
     // Check if AI backend is available
@@ -32,19 +37,19 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({
     checkAiService();
   }, []);
 
-  const toggleAiMove = () => {
-    setAutoAi((prev) => !prev);
+  useEffect(() => {
     if (autoAi) {
       handleAiMove();
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoAi]);
 
   const handleAiMove = async () => {
-    if(loading) return;
+    if (loading || gameManager.isGameOver()) return;
     try {
       preMoveHook?.();
       setLoading(true);
-      
+
       // Get AI move from Lambda function
       const aiMove = await getAiMove(gameManager);
       const currentPlayerId = gameManager.currentPlayerIndex;
@@ -60,6 +65,9 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({
         console.warn('AI WARN: Cannot place tiles in the selected pattern line. Adding to floor line instead.');
       }
 
+      if(gameManager.isGameOver()){
+        setAutoAi(false);
+      }
       onMoveExecuted();
     } catch (error) {
       console.error('Error executing AI move:', error);
@@ -68,12 +76,13 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({
       setLoading(false);
     }
 
-    if (autoAi) {
+    // Only continue auto-move if autoAi is still ON
+    if (autoAiRef.current) {
       handleAiMove();
     }
   };
 
-  if(aiAvailable) {
+  if (aiAvailable) {
     return (
       <div>
         <button
@@ -82,17 +91,17 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({
           disabled={loading || autoAi}
         >
           {loading ? 'Thinking...' : 'Get AI Move'}
-        </button>          
+        </button>
         <button
           style={{ marginLeft: 8 }}
-          onClick={() => toggleAiMove()}
+          onClick={() => setAutoAi((prev) => !prev)}
         >
           {autoAi ? 'Auto AI: ON' : 'Auto AI: OFF'}
         </button>
       </div>
     );
   } else {
-    return <>  </>
+    return <></>;
   }
 };
 

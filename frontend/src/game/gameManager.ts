@@ -11,6 +11,7 @@ export class GameManager {
   center: Tile[];
   currentPlayerIndex: number = 0;
   round: number;
+  selected: {tiles: Tile[], factoryId: number | null} | null = null;
 
   constructor(playerNames: string[]) {
     this.round = 1; // Start at round 1
@@ -62,7 +63,7 @@ export class GameManager {
 
   // #region round management
 
-  nextRound() {
+  private nextRound() {
     this.players.forEach((player) => {
       this.moveTilesToMosaicAndScore(player);
       this.clearFloorAndPenalise(player);
@@ -177,34 +178,68 @@ export class GameManager {
   // #endregion tile bag management
 
   // #region action management
-  advanceToNextPlayer(): void {
+  private advanceToNextPlayer(): void {
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
   }  
 
-  selectTiles(color: string, factoryId?: number): Tile[] {
+  selectTiles(color: string, factoryId?: number) {
+    let tiles: Tile[] = []
+    let takenFromFactory: number | null = null;
+
     if(factoryId === undefined) {
-      const selected = this.center.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
+      tiles = this.center.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
+      takenFromFactory = null;
       this.center = this.center.filter((tile) => tile.color !== color);
-      return selected;
+    } else {
+      const factory = this.factories.find((f) => f.id === factoryId);
+      if (!factory) throw new Error(`Factory with ID ${factoryId} not found`);
+
+      tiles = factory.tiles.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
+      takenFromFactory = factoryId;
+
+      const leftover = factory.tiles.filter((tile) => tile.color !== color).map((tile) => ({ ...tile, selected: true }));
+
+      // Remove tiles from the factory
+      this.factories = this.factories.map((factory) =>
+        factory.id === factoryId ? { ...factory, tiles: [] } : factory
+      );
+      // Move leftover tiles to the center pool
+      this.center = [...this.center, ...leftover];
     }
 
-    const factory = this.factories.find((f) => f.id === factoryId);
-    if (!factory) throw new Error(`Factory with ID ${factoryId} not found`);
-
-    const selected = factory.tiles.filter((tile) => tile.color === color).map((tile) => ({ ...tile, selected: true }));
-    const leftover = factory.tiles.filter((tile) => tile.color !== color).map((tile) => ({ ...tile, selected: true }));
-
-    // Remove tiles from the factory
-    this.factories = this.factories.map((factory) =>
-      factory.id === factoryId ? { ...factory, tiles: [] } : factory
-    );
-
-    // Move leftover tiles to the center pool
-    this.center = [...this.center, ...leftover];
-    return selected;
+    this.selected = { tiles, factoryId: takenFromFactory };
   }
 
-  canPlaceTiles(playerId: number, row: number, tiles: Tile[]): boolean {
+  unselectTiles() {
+    if (this.selected !== null && this.selected?.tiles.length === 0) return;
+
+    const { tiles, factoryId } = this.selected!;
+
+    if (factoryId !== undefined) {
+      const factory = this.factories.find((f) => f.id === factoryId);
+      if (factory) {
+        factory.tiles.push(...tiles);
+        const toSendBackToFactory = this.center.filter((tile) => tile.selected);
+        this.center = this.center.filter((tile) => !tile.selected);
+
+        toSendBackToFactory.forEach((tile) => (tile.selected = false));
+        factory.tiles.push(...toSendBackToFactory);
+      }
+    } else {
+      this.center.push(...tiles);
+    }
+    tiles.forEach((tile) => (tile.selected = false));
+
+    this.selected = null;
+  }
+
+  canPlaceTiles(playerId: number, row: number): boolean {
+
+    if (this.selected === null) {
+      alert('No tiles selected');
+      return false;
+    }
+
     if(row === -1){
       return true; // No restrictions for floor line
     }
@@ -214,7 +249,7 @@ export class GameManager {
     const wallRow = player.board.wall[row];
 
     // Rule: Prevent placing tiles if the color is already completed in the mosaic row
-    const tileColor = tiles[0].color;
+    const tileColor = this.selected.tiles[0].color;
     if (wallRow.some((tile) => tile?.color === tileColor)) {
       alert(`You cannot place tiles of color ${tileColor} in this row as it is already completed in the mosaic wall.`);
       return false;
@@ -235,27 +270,41 @@ export class GameManager {
     return true;
   }
 
-  placeTiles(playerId: number, row: number, tiles: Tile[]): void {
+  private canEndRound = () => {
+    const allFactoriesEmpty = this.factories.every((factory) => factory.tiles.length === 0);
+    const centerPoolEmpty = this.center.length === 0;
+    const noSelectedTiles = this.selected === null;
+    return allFactoriesEmpty && centerPoolEmpty && noSelectedTiles;
+  };
+
+  placeTiles(playerId: number, row: number): void {
     const player = this.players[playerId];
     const line = player.board.patternLines[row];
 
     if(row === -1) {
       // If row is -1, add to floor line
-      this.addToFloorLine(playerId, tiles);
+      this.addToFloorLine(playerId, this.selected!.tiles);
     } else {
       // Place tiles in the pattern line
-      for (let i = 0; i < line.length && tiles.length > 0; i++) {
+      for (let i = 0; i < line.length && this.selected!.tiles.length > 0; i++) {
         if (line[i] === null) {
-          line[i] = tiles.shift()!;
+          line[i] = this.selected!.tiles.shift()!;
         }
       }
 
       // Leftovers go to the floor line
-      player.board.floorLine.push(...tiles);
+      player.board.floorLine.push(...this.selected!.tiles);
     }
 
     // Reset selected state for tiles in the center
     this.center = this.center.map((t) => ({ ...t, selected: false }));
+    this.selected = null; // Clear selected tiles
+
+    if (this.canEndRound()) {
+      this.nextRound();
+    } else {
+      this.advanceToNextPlayer();
+    }
   }
 
   private addToFloorLine(playerId: number, tiles: Tile[]): void {

@@ -5,13 +5,15 @@ import { GameManager } from '../game/gameManager';
 interface AiMoveButtonProps {
   gameManager: GameManager;
   onMoveExecuted: () => void;
+  preMoveHook?: () => void;
 }
 
-const AiMoveButton: React.FC<AiMoveButtonProps> = ({ gameManager, onMoveExecuted }) => {
+const AiMoveButton: React.FC<AiMoveButtonProps> = ({ gameManager, onMoveExecuted, preMoveHook }) => {
   const [loading, setLoading] = useState(false);
 
   const handleAiMove = async () => {
     try {
+      preMoveHook?.();
       setLoading(true);
       
       // Get AI move from Lambda function
@@ -21,20 +23,17 @@ const AiMoveButton: React.FC<AiMoveButtonProps> = ({ gameManager, onMoveExecuted
       const currentPlayerId = gameManager.currentPlayerIndex;
       
       // Get tiles based on factory or center
-      const selected = gameManager.selectTiles(
+      gameManager.selectTiles(
         aiMove.color, 
         aiMove.factoryId !== null ? aiMove.factoryId : undefined
       );
       
       // Place tiles according to AI decision. -1 means floor line
-      if (gameManager.canPlaceTiles(currentPlayerId, aiMove.patternLine, selected)) {
-        gameManager.placeTiles(currentPlayerId, aiMove.patternLine, selected);
+      if (gameManager.canPlaceTiles(currentPlayerId, aiMove.patternLine)) {
+        gameManager.placeTiles(currentPlayerId, aiMove.patternLine);
       } else {
         console.warn('AI WARN: Cannot place tiles in the selected pattern line. Adding to floor line instead.');
       }
-      
-      // Advance to next player
-      gameManager.advanceToNextPlayer();
       
       // Notify parent component that move was executed
       onMoveExecuted();
